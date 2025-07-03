@@ -91,6 +91,13 @@
 
   <div class="output-box" id="explanationResult"></div>
 </div>
+<hr>
+<h2>Overall Forecast Visualization</h2>
+<button class="btn btn-primary mt-2" onclick="showOverallPrediction()">Show Overall Prediction</button>
+
+<div class="output-box" id="overallPredictionBox" style="display:none;">
+  <img id="overallPredImage" src="" class="img-fluid mt-3" alt="Overall Prediction Plot">
+</div>
 
 <script>
   // Populate year dropdown
@@ -142,6 +149,13 @@
          <small>Check console for details</small>
        </div>`;
   }
+
+  function showOverallPrediction() {
+  const imageUrl = "https://raw.githubusercontent.com/ameya1807/SSN_forecasting/main/static/xai/pred.png";
+  document.getElementById("overallPredImage").src = imageUrl;
+  document.getElementById("overallPredictionBox").style.display = "block";
+}
+
 </script>
 </body>
 </html>
