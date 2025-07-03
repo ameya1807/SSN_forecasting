@@ -1,13 +1,29 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, redirect
 import pandas as pd
-import os
+import requests
+from io import BytesIO
 
 app = Flask(__name__)
 
-# --- Load forecast Excel once ---
-forecast_path = os.path.join("static", "ssn_forecast_2020_2040.xlsx")
-df_forecast = pd.read_excel(forecast_path)
-df_forecast["Year_Month"] = pd.to_datetime(df_forecast["Year_Month"], format="%Y-%m")
+# GitHub raw file base URL
+GITHUB_BASE_URL = "https://raw.githubusercontent.com/ameya1807/SSN_forecasting/main"
+
+# --- Load forecast Excel from GitHub ---
+def load_forecast_data():
+    try:
+        excel_url = f"{GITHUB_BASE_URL}/static/ssn_forecast_2020_2040.xlsx"
+        response = requests.get(excel_url)
+        response.raise_for_status()
+        
+        df_forecast = pd.read_excel(BytesIO(response.content))
+        df_forecast["Year_Month"] = pd.to_datetime(df_forecast["Year_Month"], format="%Y-%m")
+        return df_forecast
+    except Exception as e:
+        print(f"Error loading forecast data: {e}")
+        return None
+
+# Load data once at startup
+df_forecast = load_forecast_data()
 
 # --- Cycle peaks (for dropdowns) ---
 cycle_peaks = {
@@ -27,6 +43,9 @@ def home():
 
 @app.route("/api/forecast/<year_month>")
 def get_forecast(year_month):
+    if df_forecast is None:
+        return jsonify({"error": "Forecast data not available"}), 500
+        
     try:
         date = pd.to_datetime(year_month, format="%Y-%m")
         row = df_forecast[df_forecast["Year_Month"] == date]
@@ -39,14 +58,15 @@ def get_forecast(year_month):
 
 @app.route("/download")
 def download_forecast():
-    return send_from_directory("static", "ssn_forecast_2020_2040.xlsx", as_attachment=True)
+    """Redirect to GitHub raw file for download"""
+    excel_url = f"{GITHUB_BASE_URL}/static/ssn_forecast_2020_2040.xlsx"
+    return redirect(excel_url)
 
 @app.route("/xai/<filename>")
 def serve_xai_plot(filename):
-    """
-    Serve SHAP/IG plots stored under static/xai/ directory.
-    """
-    return send_from_directory("static/xai", filename)
+    """Redirect to GitHub raw file for XAI plots"""
+    plot_url = f"{GITHUB_BASE_URL}/static/xai/{filename}"
+    return redirect(plot_url)
 
 if __name__ == "__main__":
     app.run(debug=True)
