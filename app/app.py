@@ -66,4 +66,6 @@ def serve_xai_plot(filename):
         return f"<h4 style='color:tomato'>Error loading image {filename}: {e}</h4>", 404
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 10000))  # Render assigns the port via env variable
+    app.run(host="0.0.0.0", port=port)
