@@ -32,6 +32,10 @@
       padding: 20px;
       border-radius: 8px;
     }
+    .error-message {
+      color: #ff6b6b;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -106,8 +110,18 @@
     fetch(`/api/forecast/${dateKey}`)
       .then(res => res.json())
       .then(data => {
+        if (data.error) {
+          document.getElementById("forecastResult").innerHTML =
+            `<div class="error-message">Error: ${data.error}</div>`;
+        } else {
+          document.getElementById("forecastResult").innerHTML =
+            `<strong>Forecasted SSN:</strong> ${data.ssn}`;
+        }
+      })
+      .catch(error => {
+        console.error('Forecast error:', error);
         document.getElementById("forecastResult").innerHTML =
-          `<strong>Forecasted SSN:</strong> ${data.ssn}`;
+          `<div class="error-message">Error loading forecast data</div>`;
       });
   }
 
@@ -117,8 +131,16 @@
     const filename = `${method.toLowerCase()}_${cycle}.png`;
     const imgPath = `/xai/${filename}`;
 
+    console.log(`Loading XAI plot: ${imgPath}`);
+
     document.getElementById("explanationResult").innerHTML =
-      `<img src="${imgPath}" class="img-fluid mt-3" alt="${method} Explanation for ${cycle}">`;
+      `<img src="${imgPath}" class="img-fluid mt-3" alt="${method} Explanation for ${cycle}"
+             onload="console.log('Image loaded successfully: ${imgPath}')"
+             onerror="console.error('Image failed to load: ${imgPath}'); this.style.display='none'; this.nextElementSibling.style.display='block';">
+       <div class="error-message" style="display:none;">
+         Failed to load image: ${filename}<br>
+         <small>Check console for details</small>
+       </div>`;
   }
 </script>
 </body>
