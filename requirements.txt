@@ -1,0 +1,9 @@
+flask
+numpy
+pandas
+matplotlib
+scikit-learn
+torch
+shap==0.48.0
+openpyxl
+requests
